@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -45,6 +46,7 @@ public class MainActivity extends Activity {
 		// TODO: Create an intent with the action
 		// MediaStore.ACTION_IMAGE_CAPTURE
 		
+		
 		// ComponentName cn = new ComponentName("es.softwareprocess.bogopicgen",
 		// "es.softwareprocess.bogopicgen.BogoPicGenActivity");
 		// ComponentName cn = new ComponentName("com.android.camera",
@@ -53,18 +55,22 @@ public class MainActivity extends Activity {
 
 		// Create a folder to store pictures
 		String folder = Environment.getExternalStorageDirectory()
-				.getAbsolutePath() + "/tmp";
+				.getAbsolutePath() + "/tmp/";
 		File folderF = new File(folder);
 		if (!folderF.exists()) {
-			folderF.mkdir();
+			folderF.mkdirs();
+			Log.d("folder", "path: " + folderF.toString() + ", exists: " + folderF.exists());
 		}
 
 		// Create an URI for the picture file
-		String imageFilePath = folder + "/"
-				+ String.valueOf(System.currentTimeMillis()) + ".jpg";
+		String imageFilePath = folder + String.valueOf(System.currentTimeMillis()) + ".jpg";
 		File imageFile = new File(imageFilePath);
 		imageFileUri = Uri.fromFile(imageFile);
 
+		Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+		intent.putExtra(MediaStore.EXTRA_OUTPUT, imageFileUri);
+		
+		startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 		// TODO: Put in the intent in the tag MediaStore.EXTRA_OUTPUT the URI
 		
 		// TODO: Start the activity (expecting a result), with the code
@@ -73,6 +79,21 @@ public class MainActivity extends Activity {
 	}
 
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if(requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE){
+			if(resultCode == RESULT_OK){
+				TextView tv = (TextView) findViewById(R.id.status);
+				tv.setText("Photo OK");
+				ImageButton ib = (ImageButton) findViewById(R.id.TakeAPhoto);
+				Drawable picture = Drawable.createFromPath(imageFileUri.getPath());
+				ib.setImageDrawable(picture);
+			} else if( resultCode == RESULT_CANCELED){
+				TextView tv = (TextView) findViewById(R.id.status);
+				tv.setText("Photo Cancelled");
+			} else {
+				TextView tv = (TextView) findViewById(R.id.status);
+				tv.setText("Photo Unkown");
+			}
+		}
 		// TODO: Handle the results from CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE
 		
 		// TODO: Handle the cases for RESULT_OK, RESULT_CANCELLED, and others
